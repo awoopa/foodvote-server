@@ -1,0 +1,25 @@
+{
+  "name": "foodvote-server",
+  "version": "0.0.1",
+  "description": "Node.JS server for FoodVote app made for nwHacks 2015",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "~4.9.x"
+  },
+  "engines": {
+    "node": "0.12.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://kinwa91@github.com/yeah568/foodvote-server.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yeah568/foodvote-server/issues"
+  },
+  "homepage": "https://github.com/yeah568/foodvote-server"
+}
