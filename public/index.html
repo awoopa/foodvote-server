@@ -9,18 +9,37 @@
   <script>
   var socket = io();
 
-  socket.on('test', function(data) {
-    console.log(data);
-  })
+  var testEvents = [
+    'test',
+    'joined room',
+    'user joined room',
+    'room available',
+    'room created',
+    'user start',
+    'new round',
+    'voting start'
+  ];
 
-  socket.on('room available', function(data) {
-    console.log(data);
-  })
+  testEvents.forEach(function (event) {
+    socket.on(event, function (res) {
+      console.log("Event received: " + event);
+      console.log(res);
+    });
+  });
 
-  socket.on('user joined room', function(data) {
-    console.log("user joined room");
-    console.log(data);
-  })
+  var setups = [
+    function () {
+      socket.emit('creator setup', { name: 'room1', radius: '', center: '', time: '', options: [], uuid: 'jonathan3' });
+    },
+    function () {
+      socket.emit('add locations', { name: 'room1', locations:[1,2,3,4,5,6,7,8,9] });
+    },
+    function () {
+      socket.emit('creator start', { name: 'room1' });
+    }
+  ]
+
+
   </script>
 </body>
 </html>
