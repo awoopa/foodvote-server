@@ -59,6 +59,8 @@ io.on('connection', function (socket) {
   socket.on('join room', function (data) {
     var roomName = data.room_name;
     var userName = data.user_name;
+
+    console.log("user " + userName + " wish to join '"+ roomName + "'");
     // check if either is empty
     if (!roomName || !userName)
       return;
@@ -72,6 +74,7 @@ io.on('connection', function (socket) {
       // {
       //    room: {}     ; current room
       // }
+      console.log("emit joined room message");
       socket.emit('joined room', { room: room });
       room.users[user.socketId] = user;
       // emits to all in this room
@@ -79,7 +82,8 @@ io.on('connection', function (socket) {
       //    new_user: {}
       //    all_users: []
       // }
-      io.to(room).emit('user joined room', {
+      console.log("emit user joined room message");
+      io.to(room.roomName).emit('user joined room', {
         new_user: user,
         all_users: room.users
       });
@@ -87,6 +91,7 @@ io.on('connection', function (socket) {
     else
     // Case: roomName does not exists
     {
+      console.log("emit room available message");
       socket.emit('room available', { room_name: roomName });
     }
   });
@@ -127,7 +132,6 @@ io.on('connection', function (socket) {
     TODO: add in logic to remove already existing default Yelp ID in
           place of the user's choices.
     {
-      name: ''         ; the name of the room
       locations: []    ; the array of Yelp IDs user's choice
     }
     */
@@ -241,7 +245,7 @@ io.on('connection', function (socket) {
     }
   });
 
-
+  console.log("a user connected");
 });
 
 
