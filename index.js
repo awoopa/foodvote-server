@@ -9,7 +9,18 @@ app.use(express.static(__dirname + '/public'));
 function Round() {
     this.placeA; // yelp IDs (or similar)
     this.placeB;
-    this.votes = []; // array of objects, each object is user and their vote
+    this.votes = {}; // array of objects, each object is user and their vote
+
+    // return either placeA's Yelp ID or placeB's Yelp Id whichever side win
+    this.getWinner = function () {
+      var sum = 0;
+      for (var key in this.votes) {
+        sum += this.votes[key].score;
+      }
+      if (sum == 0) return 0;
+      if (sum > 0) return 1
+      if (sum < 0) return -1;
+    }
 }
 
 function User(socketId, name) {
@@ -27,6 +38,8 @@ function Room() {
     this.center;
     this.time;
     this.options = []; // array of all places in consideration, initialized with seed places from client
+
+    this.keep = [];
 }
 
 var rooms = {};
@@ -150,6 +163,85 @@ io.on('connection', function (socket) {
     io.to(room.roomName).emit('new round', { roundNum: 0, this_round: round });
     // user should now vote...
   });
+/*
+  {
+    roundNum: x    ; x = current round (0-based)
+    score: y       ; y = score given by user, -5 is in favor of A, +5 is in favor of B.
+  }
+*/
+  socket.on('register vote', function (data) {
+    if (!room || !user) return;
+    var roundNum = data.roundNum;
+    var score = data.score;
+    // user voted on a round number not on this round..
+    if (roundNum + 1 != room.rounds.length) return;
+    // record vote in this round's object:
+    var round = room.rounds[roundNum];
+    if (!round) return;
+
+    round.votes[user.socketId] = {
+      user: user,
+      score: score
+    };
+
+    io.to(room.roomName).emit('user voted', {
+      user: user,
+      round: round
+    });
+
+    // check if all users have voted
+    if (Object.keys(room.users).length == Object.keys(round.votes).length) {
+      // winner/ -1 A wins +1 B wins 0 ties
+      var winner = round.getWinner();
+      var indexOfB = room.options.indexOf(round.placeB);
+      var indexOfA = room.options.indexOf(round.placeA);
+
+
+      io.to(room.roomName).emit('round ended', {
+        result: winner,
+        round: round
+      });
+
+
+      if (winner == -1) {
+        console.log("A wins last time");
+        // remove placeB from options
+        room.options.splice(indexOfB, 1);
+      } else if (winner == 1) {
+        console.log("B wins last time");
+        room.options.splice(indexOfA, 1);
+      } else {
+        console.log("Ties last time");
+        room.keep.push(round.placeB);
+        room.options.splice(indexOfB, 1);
+      }
+
+
+      if (room.options.length < 2) {
+
+        var winningPlaces = room.options.concat(room.keep);
+
+        io.to(room.roomName).emit('voting end', {
+          rounds: room.rounds,
+          winners: winningPlaces
+        });
+
+        return;
+      }
+
+      var nextRound = new Round();
+      nextRound.placeA = room.options[indexOfA];
+      nextRound.placeB = room.options[indexOfA + 1];
+
+      room.rounds.push(nextRound);
+
+      // emit new round
+      io.to(room.roomName).emit('new round', { roundNum: roundNum + 1, this_round: nextRound });
+
+    }
+  });
+
+
 });
 
 
