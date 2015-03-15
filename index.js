@@ -143,7 +143,7 @@ io.on('connection', function (socket) {
       should notify all users in the room that voting begins.
       emit the current room informations (with new Yelp IDs)
     */
-    io.to(room.roomName).emit('voting start', room);
+    io.to(room.roomName).emit('voting start', {room: room, yelpResults: data.yelpResults});
 
     // create a new Round and sends to user:
     var round = new Round();
