@@ -59,6 +59,8 @@ io.on('connection', function (socket) {
   socket.on('join room', function (data) {
     var roomName = data.room_name;
     var userName = data.user_name;
+
+    console.log("user " + userName + " wish to join '"+ roomName + "'");
     // check if either is empty
     if (!roomName || !userName)
       return;
@@ -72,6 +74,7 @@ io.on('connection', function (socket) {
       // {
       //    room: {}     ; current room
       // }
+      console.log("emit joined room message");
       socket.emit('joined room', { room: room });
       room.users[user.socketId] = user;
       // emits to all in this room
@@ -79,14 +82,19 @@ io.on('connection', function (socket) {
       //    new_user: {}
       //    all_users: []
       // }
-      io.to(room).emit('user joined room', {
-        new_user: user,
-        all_users: room.users
-      });
+      console.log("emit user joined room message");
+      setTimeout(function () {
+        io.to(room.roomName).emit('user joined room', {
+          new_user: user,
+          all_users: room.users
+        });
+      },1000);
+
     }
     else
     // Case: roomName does not exists
     {
+      console.log("emit room available message");
       socket.emit('room available', { room_name: roomName });
     }
   });
@@ -121,13 +129,21 @@ io.on('connection', function (socket) {
     socket.join(room.roomName);
 
     socket.emit('room created', { room: room });
+
+
+    console.log("emit user joined room message");
+    setTimeout(function () {
+      io.to(room.roomName).emit('user joined room', {
+        new_user: user,
+        all_users: room.users
+      });
+    },1000);
   });
     /*
     Used to add locations specified by users.
     TODO: add in logic to remove already existing default Yelp ID in
           place of the user's choices.
     {
-      name: ''         ; the name of the room
       locations: []    ; the array of Yelp IDs user's choice
     }
     */
@@ -241,7 +257,25 @@ io.on('connection', function (socket) {
     }
   });
 
+  socket.on('disconnect', function () {
+    console.log("user disconnected");
+    if (!user || !room)
+      return;
+    if (room.users[socket.id]) {
+      delete room.users[socket.id];
+      console.log("user disconnect, delete from room users list, assert(null):");
+      console.log(room.users[socket.id]);
+    }
+    // if no more people in room, delete room
+    if (Object.keys(rooms[room.roomName].users).length <= 0) {
+        console.log("room " + room.roomName + " will be deleted");
+        delete rooms[room.roomName];
+    }
 
+
+  });
+
+  console.log("a user connected");
 });
 
 
