@@ -245,6 +245,24 @@ io.on('connection', function (socket) {
     }
   });
 
+  socket.on('disconnect', function () {
+    console.log("user disconnected");
+    if (!user || !room)
+      return;
+    if (room.users[socket.id]) {
+      delete room.users[socket.id];
+      console.log("user disconnect, delete from room users list, assert(null):");
+      console.log(room.users[socket.id]);
+    }
+    // if no more people in room, delete room
+    if (Object.keys(rooms[room.roomName].users).length <= 0) {
+        console.log("room " + room.roomName + " will be deleted");
+        delete rooms[room.roomName];
+    }
+
+
+  });
+
   console.log("a user connected");
 });
 
