@@ -83,10 +83,13 @@ io.on('connection', function (socket) {
       //    all_users: []
       // }
       console.log("emit user joined room message");
-      io.to(room.roomName).emit('user joined room', {
-        new_user: user,
-        all_users: room.users
-      });
+      setTimeout(function () {
+        io.to(room.roomName).emit('user joined room', {
+          new_user: user,
+          all_users: room.users
+        });
+      },1000);
+
     }
     else
     // Case: roomName does not exists
@@ -126,6 +129,15 @@ io.on('connection', function (socket) {
     socket.join(room.roomName);
 
     socket.emit('room created', { room: room });
+
+
+    console.log("emit user joined room message");
+    setTimeout(function () {
+      io.to(room.roomName).emit('user joined room', {
+        new_user: user,
+        all_users: room.users
+      });
+    },1000);
   });
     /*
     Used to add locations specified by users.
